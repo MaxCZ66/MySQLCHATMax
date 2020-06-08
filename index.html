@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Příklad použití modulu spaserver</title>
+    <script>
+        const HOST = window.location.protocol + "//" + window.location.hostname + ((window.location.port) ? ":" + window.location.port : "");
+
+        function ukazChybu(e) {
+            console.error('Error:', e.toString());
+            let s;
+            if (typeof e == "object") {
+                s = JSON.stringify(e);
+            } else {
+                s = e;
+            }
+            document.getElementById("div_chyby").innerHTML = `<input type="button" value="x" onclick="document.getElementById('div_chyby').style.display = 'none'"> ${s}`;
+            document.getElementById("div_chyby").style.display = 'block';
+        }
+
+        function ukazDen() {
+            let url = `${HOST}/denvtydnu`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    document.getElementById("den").innerHTML = obj.den.toLowerCase();
+                    document.getElementById("datum").innerHTML = obj.datum;
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
+        function ukazCas() {
+            let url = `${HOST}/cas`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    document.getElementById("cas").innerHTML = obj.cas;
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
+        function ukazZpravy() {
+            let url = `${HOST}/chat/list`;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                    let s = "";
+                    for (let o of obj.messages) {
+                        s = o.time + " " + o.nickname + "<br><b>" + o.message + "</b><br>" + s;
+                    }
+                    document.getElementById("zpravy").innerHTML = s;
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
+        function posliZpravu() {
+            let m = document.getElementById("zprava").value;
+            document.getElementById("zprava").value = ""; //vymazani textu ze vstupu
+            document.getElementById("zprava").focus(); //kurzor do vstupu
+            let n = document.getElementById("prezdivka").value;
+            let url = `${HOST}/chat/add?msg=`+m+"&nick="+n;
+            fetch(url).then(function (response) {
+                response.text().then(function (text) {
+                    let obj = JSON.parse(text);
+                }).catch((error) => {
+                    ukazChybu(error);
+                });
+            });
+        }
+
+        function spustPoNacteni() {
+            ukazDen();
+            setInterval(ukazCas, 1000);
+            setInterval(ukazZpravy, 1000);
+        }
+
+    </script>
+</head>
+<body onload="spustPoNacteni()" style="background-color:orange;" >
+<div id="div_chyby" style="color: white; background-color: white; display: none"></div>
+
+<h1>Můj chat</h1>
+
+Dnes je <span id="den">...</span> <span id="datum">...</span>. Čas na serveru je <span id="cas">...</span>. NAPIS ZPRAVU! 
+<br><br>
+<br><br>
+Přezdívka:<input type="text" id="prezdivka"><br><br>
+Text:<input type="text" id="zprava"><input type="button" value="Odeslat" onclick="posliZpravu()">
+<div id="zpravy">...</div>
+<br><br>
+<img alt="Yobama | Know Your Meme" class="n3VNCb" src="https://i.kym-cdn.com/photos/images/newsfeed/001/441/147/84e.jpg" data-noaft="1" jsname="HiaYvf" jsaction="load:XAeZkd;" style="width: 383px; height: 268.1px; margin: 11.3px 0px;">
+
+</body>
+</html>
